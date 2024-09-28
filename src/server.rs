@@ -181,7 +181,11 @@ where
                         snapshot: self.snapshot.clone(),
                     };
                     let (read, write) = socket.into_split();
-                    tokio::spawn(async move { conn.run(read, write).await.unwrap(); });
+                    tokio::spawn(async move {
+                        if let Err(err) = conn.run(read, write).await {
+                            tracing::error!({ %err }, "connection error");
+                        }
+                    });
                 }
                 Err(e) => {
                     tracing::error!({ %e }, "error accepting new connection");
